@@ -1,0 +1,30 @@
+% Load the model file
+load('tree.mat');
+
+% Load the test data
+test_data = readtable('data - 7BLTE.csv', 'HeaderLines', 1);
+test_data = table2array(test_data);
+
+% Split the test data into input and output variables
+X_test = test_data(:, 1:end-1);
+y_test = test_data(:, end);
+
+% Predict the outputs for the test data
+y_pred = predict(tree, X_test);
+
+% Evaluate the performance of the model
+accuracy = sum(y_pred == y_test) / numel(y_test);
+fprintf('Accuracy before online training = %.4f\n', accuracy);
+
+% Update the model with the new data
+tree = fitctree([tree.X; X_test], [tree.Y; y_test], 'SplitCriterion','deviance','MaxNumSplits',10,'MinLeafSize',5);
+
+% Save the updated model file
+save('tree.mat', 'tree');
+
+% Test the updated model
+y_pred = predict(tree, X_test);
+
+% Evaluate the performance of the updated model
+accuracy = sum(y_pred == y_test) / numel(y_test);
+fprintf('Accuracy after online training = %.4f\n', accuracy);
